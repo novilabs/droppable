@@ -179,19 +179,68 @@ export default class Droppable {
         this.virtualInputElement.value = '';
     }
 
+    // TODO: Use FileSystemDirectoryEntry instead of any for dirEntry type
+    private loadDirectory(dirEntry: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const reader = dirEntry.createReader();
+            reader.readEntries((entries: any) => {
+                // TODO: Entries are either FileSystemDirectoryEntry or FileSystemFileEntry type
+                resolve(entries);
+            });
+        });
+    }
+
+    // TODO: Use FileSystemFileEntry instead of any for fileEntry type
+    private loadFile(fileEntry: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            fileEntry.file((fileResult: any) => {
+                resolve(fileResult);
+            });
+        });
+    }
+
+    private async traverseDataTransferItemsInner(items: Array<any>, fileNamePrefix: String = ''): Promise<any> {
+        let files: Array<File> = [];
+        for (let item of items) {
+            if (item.isFile) {
+                const fileResult = await this.loadFile(item);
+                fileResult.prefix = `${fileNamePrefix}`;
+                files.push(fileResult);
+            } else if (item.isDirectory) {
+                const dirItems = await this.loadDirectory(item);
+                const dirFiles = await this.traverseDataTransferItemsInner(dirItems, `${fileNamePrefix}${item.name}/`);
+                files = files.concat(dirFiles);
+            }
+        }
+        return files;
+    }
+
+    private traverseDataTransferItems(items: Array<DataTransferItem>, callback: FilesWereDroppedEventListener) {
+        this.traverseDataTransferItemsInner(items).then(files => {
+            callback(files);
+        });
+    }
+
     private onDroppableElementChange(event: { [key: string]: any }) {
-        let files;
+        const onFilesSet = (files: Array<File>) => {
+            // Files is FileList, we convert to array
+            const filesArray: File[] = Array.from(files);
+            this.setLatestDrop(filesArray);
+        };
+
         if (event['dataTransfer']) {
-            files = event['dataTransfer'].files;
+            // Support for Chrome's traversal of directories
+            if (event['dataTransfer'].items && event['dataTransfer'].items.length > 0 && event['dataTransfer'].items[0].webkitGetAsEntry) {
+                const entries = Array.from(event['dataTransfer'].items).map((item: any) => item.webkitGetAsEntry());
+                this.traverseDataTransferItems(entries, onFilesSet);
+            } else {
+                onFilesSet(event['dataTransfer'].files);
+            }
         } else if (event['target']) {
-            files = event['target'].files;
+            onFilesSet(event['target'].files);
         } else {
             throw Error('Fired event contains no files');
         }
-
-        // Files is FileList, we convert to array
-        const filesArray: File[] = Array.from(files);
-        this.setLatestDrop(filesArray);
     }
 
     private setLatestDrop(files: Array<File>) {

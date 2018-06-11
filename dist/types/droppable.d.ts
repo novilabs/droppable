@@ -38,7 +38,7 @@ export default class Droppable {
     private onVirtualInputElementChange(e);
     private loadDirectory(dirEntry);
     private loadFile(fileEntry);
-    private traverseDataTransferItemsInner(items, fileNamePrefix?);
+    private traverseDataTransferItemsInner(items, dirTree?);
     private traverseDataTransferItems(items, callback);
     private onDroppableElementChange(event);
     private setLatestDrop(files);

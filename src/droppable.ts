@@ -199,16 +199,17 @@ export default class Droppable {
         });
     }
 
-    private async traverseDataTransferItemsInner(items: Array<any>, fileNamePrefix: String = ''): Promise<any> {
+    private async traverseDataTransferItemsInner(items: Array<any>, dirTree: Array<String> = []): Promise<any> {
         let files: Array<File> = [];
         for (let item of items) {
             if (item.isFile) {
                 const fileResult = await this.loadFile(item);
-                fileResult.prefix = `${fileNamePrefix}`;
+                fileResult.dirTree = dirTree;
                 files.push(fileResult);
             } else if (item.isDirectory) {
                 const dirItems = await this.loadDirectory(item);
-                const dirFiles = await this.traverseDataTransferItemsInner(dirItems, `${fileNamePrefix}${item.name}/`);
+                dirTree.push(item.name);
+                const dirFiles = await this.traverseDataTransferItemsInner(dirItems, dirTree);
                 files = files.concat(dirFiles);
             }
         }

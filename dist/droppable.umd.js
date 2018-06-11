@@ -207,8 +207,8 @@ var Droppable = /** @class */ (function () {
             });
         });
     };
-    Droppable.prototype.traverseDataTransferItemsInner = function (items, fileNamePrefix) {
-        if (fileNamePrefix === void 0) { fileNamePrefix = ''; }
+    Droppable.prototype.traverseDataTransferItemsInner = function (items, dirTree) {
+        if (dirTree === void 0) { dirTree = []; }
         return __awaiter(this, void 0, void 0, function () {
             var files, _i, items_1, item, fileResult, dirItems, dirFiles;
             return __generator(this, function (_a) {
@@ -224,7 +224,7 @@ var Droppable = /** @class */ (function () {
                         return [4 /*yield*/, this.loadFile(item)];
                     case 2:
                         fileResult = _a.sent();
-                        fileResult.prefix = "" + fileNamePrefix;
+                        fileResult.dirTree = dirTree;
                         files.push(fileResult);
                         return [3 /*break*/, 6];
                     case 3:
@@ -232,7 +232,8 @@ var Droppable = /** @class */ (function () {
                         return [4 /*yield*/, this.loadDirectory(item)];
                     case 4:
                         dirItems = _a.sent();
-                        return [4 /*yield*/, this.traverseDataTransferItemsInner(dirItems, "" + fileNamePrefix + item.name + "/")];
+                        dirTree.push(item.name);
+                        return [4 /*yield*/, this.traverseDataTransferItemsInner(dirItems, dirTree)];
                     case 5:
                         dirFiles = _a.sent();
                         files = files.concat(dirFiles);

@@ -1,6 +1,6 @@
 {
     "name": "droppable",
-    "version": "2.1.6",
+    "version": "2.1.7",
     "description": "A library to give file dropping super-powers to any HTML element.",
     "keywords": [
         "droppable",
